@@ -1,2 +1,0 @@
-# Keep canonical migration view definition from this branch when merging to avoid recurring textual conflicts.
-supabase/migrations/202605170001_init.sql merge=ours
