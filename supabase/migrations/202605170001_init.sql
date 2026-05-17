@@ -38,13 +38,6 @@ insert into fee_months(month_name,display_order) values ('April',1),('May',2),('
 
 create or replace view student_due_summary as select s.id student_id,s.student_name,s.father_name,c.class_name,s.section,sum(l.expected_fee) expected,sum(l.paid_amount) paid,sum(l.balance_amount) pending from students s left join classes c on s.class_id=c.id left join student_monthly_ledgers l on l.student_id=s.id group by s.id,c.class_name;
 create or replace view class_fee_summary as select c.id class_id,c.class_name,count(distinct s.id) total_students,coalesce(sum(l.expected_fee),0) expected,coalesce(sum(l.paid_amount),0) collected,coalesce(sum(l.balance_amount),0) pending from classes c left join students s on s.class_id=c.id left join student_monthly_ledgers l on l.student_id=s.id group by c.id;
--- Canonical definition (kept to avoid merge-conflict variant with `month` alias).
-create or replace view monthly_collection_summary as
-select
-  date_trunc('month', payment_date)::date as collection_month,
-  sum(amount) as total_collection
-from payments
-group by 1
-order by 1;
+create or replace view monthly_collection_summary as select date_trunc('month', payment_date)::date as collection_month, sum(amount) as total_collection from payments group by 1 order by 1;
 create or replace view pending_fee_students as select * from student_due_summary where pending>0;
 create or replace view daily_collection_summary as select payment_date collection_date,sum(amount) total_collection from payments group by payment_date;
