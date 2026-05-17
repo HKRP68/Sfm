@@ -206,16 +206,27 @@ create index if not exists idx_payments_student_id on payments(student_id);
 create index if not exists idx_receipts_payment_id on receipts(payment_id);
 create index if not exists idx_student_monthly_ledgers_student_id on student_monthly_ledgers(student_id);
 
+drop trigger if exists trg_schools_updated on schools;
 create trigger trg_schools_updated before update on schools for each row execute function set_updated_at();
+drop trigger if exists trg_school_settings_updated on school_settings;
 create trigger trg_school_settings_updated before update on school_settings for each row execute function set_updated_at();
+drop trigger if exists trg_academic_sessions_updated on academic_sessions;
 create trigger trg_academic_sessions_updated before update on academic_sessions for each row execute function set_updated_at();
+drop trigger if exists trg_user_profiles_updated on user_profiles;
 create trigger trg_user_profiles_updated before update on user_profiles for each row execute function set_updated_at();
+drop trigger if exists trg_classes_updated on classes;
 create trigger trg_classes_updated before update on classes for each row execute function set_updated_at();
+drop trigger if exists trg_students_updated on students;
 create trigger trg_students_updated before update on students for each row execute function set_updated_at();
+drop trigger if exists trg_fee_structures_updated on fee_structures;
 create trigger trg_fee_structures_updated before update on fee_structures for each row execute function set_updated_at();
+drop trigger if exists trg_student_fee_settings_updated on student_fee_settings;
 create trigger trg_student_fee_settings_updated before update on student_fee_settings for each row execute function set_updated_at();
+drop trigger if exists trg_student_monthly_ledgers_updated on student_monthly_ledgers;
 create trigger trg_student_monthly_ledgers_updated before update on student_monthly_ledgers for each row execute function set_updated_at();
+drop trigger if exists trg_payments_updated on payments;
 create trigger trg_payments_updated before update on payments for each row execute function set_updated_at();
+drop trigger if exists trg_receipts_updated on receipts;
 create trigger trg_receipts_updated before update on receipts for each row execute function set_updated_at();
 
 alter table classes enable row level security;
@@ -258,9 +269,9 @@ select
   sum(l.expected_fee) as expected,
   sum(l.paid_amount) as paid,
   sum(l.balance_amount) as pending
-from students s
-left join classes c on s.class_id = c.id
-left join student_monthly_ledgers l on l.student_id = s.id
+from public.students s
+left join public.classes c on s.class_id = c.id
+left join public.student_monthly_ledgers l on l.student_id = s.id
 group by s.id, c.class_name;
 
 create or replace view class_fee_summary as
@@ -271,16 +282,16 @@ select
   coalesce(sum(l.expected_fee),0) as expected,
   coalesce(sum(l.paid_amount),0) as collected,
   coalesce(sum(l.balance_amount),0) as pending
-from classes c
-left join students s on s.class_id = c.id
-left join student_monthly_ledgers l on l.student_id = s.id
+from public.classes c
+left join public.students s on s.class_id = c.id
+left join public.student_monthly_ledgers l on l.student_id = s.id
 group by c.id;
 
 create or replace view monthly_collection_summary as
 select
   date_trunc('month', payment_date)::date as collection_month,
   sum(amount) as total_collection
-from payments
+from public.payments
 group by 1
 order by 1;
 
@@ -291,5 +302,5 @@ create or replace view daily_collection_summary as
 select
   payment_date as collection_date,
   sum(amount) as total_collection
-from payments
+from public.payments
 group by payment_date;
